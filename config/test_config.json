@@ -1,5 +1,5 @@
 {
-  "this_program_dir": "learn_on_graph",
+  "this_program_dir": "test_config",
   "eval_separate": true,
   "classifiers": {
     "kmeans": [{

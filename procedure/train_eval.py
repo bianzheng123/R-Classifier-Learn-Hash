@@ -47,6 +47,7 @@ def eval_models(models, baseset, queryset, gndset, n_bins, k):
     for i in range(len(label_l)):
         # 根据label存放的baseset索引找到切分数据集后的东西
         partition_items = np.array([baseset[candi_idx] for candi_idx in label_l[i]])
+        # print(partition_items.shape)
 
         # 在partition后的空间内暴力搜索
         query = queryset[i]

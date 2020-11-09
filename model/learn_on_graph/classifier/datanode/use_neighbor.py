@@ -20,6 +20,7 @@ class UseNeighborDatanode(datanode.Datanode):
 
     def process_data(self, base, partition):
         super(UseNeighborDatanode, self).process_data(base, partition)
+        # 取前nn_mult * k个gnd作为训练集的标签
         ranks = vecs_util.get_gnd_numpy(base, base, self.nn_mult * self.k)
         base_idx = torch.arange(0, base.shape[0])
         partition = torch.LongTensor(partition)

@@ -7,18 +7,15 @@ class KMeans(base_model.BaseModel):
 
     def __init__(self, config):
         super(KMeans, self).__init__(config)
-        # key是每一个类的编号, value是属于该类的点在base对应的索引
-        self.label = {}
         # 该模型需要聚类的数量
-        self.n_cluster = config['n_cluster']
         self.model = cls.KMeans(n_clusters=self.n_cluster, init='k-means++', max_iter=30)
-        # self.base, self.save_dir
+        # self.base, self.save_dir, self.label
 
     def train(self, base):
         print('start training {}'.format(self.save_dir.split('/')[-1]))
         super(KMeans, self).train(base)
         self.model.fit(base)
-        self.get_labels()
+        self.get_labels(self.model.labels_)
         print('finish training {}'.format(self.save_dir.split('/')[-1]))
         # print(self.base)
 
@@ -40,13 +37,6 @@ class KMeans(base_model.BaseModel):
             res.append(set(base_idx))
         # print(res.shape) # 对于单个query, shape为1 * candidates数量
         return res
-
-    # 填充self.label
-    def get_labels(self):
-        labels = self.model.labels_
-        for cluster_i in range(self.n_cluster):
-            base_idx_i = np.argwhere(labels == cluster_i).reshape(-1)
-            self.label[cluster_i] = base_idx_i
 
     def __str__(self):
         return 'KMeans n_cluster:%d save_dir: %s' % (self.n_cluster, self.save_dir)

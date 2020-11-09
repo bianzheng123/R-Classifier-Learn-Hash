@@ -23,7 +23,6 @@ class NeuralNetwork(classifier.Classifier):
         super(NeuralNetwork, self).eval(query, n_bucket_visit
                                         )
         # 对每一个query, 得到一个不同桶的概率
-        print(query.shape)
         vecs = self.trainnode.eval(query)
-        print(vecs)
+        return vecs
         # return np.array([[1, 2]])

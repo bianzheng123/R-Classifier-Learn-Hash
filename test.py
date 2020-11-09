@@ -1,8 +1,17 @@
 import numpy as np
 import torch
 
-x = [3, 1, 2]
-x = set(x)
-x = list(x)
-print(x)
+class A:
+    def __init__(self):
+        pass
+    def func(self, a):
+        print('a')
 
+class B(A):
+    def __init__(self):
+        pass
+    def func1(self):
+        self.func('fsd')
+
+tmp = B()
+tmp.func1()

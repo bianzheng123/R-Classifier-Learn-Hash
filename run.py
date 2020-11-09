@@ -10,7 +10,7 @@ if __name__ == '__main__':
     with open('config/long_term_config.json', 'r') as f:
         long_term_config = json.load(f)
 
-    with open('config/test_config.json', 'r') as f:
+    with open('config/short_term_config.json', 'r') as f:
         short_term_config = json.load(f)
 
     this_program_dir = short_term_config['this_program_dir']
@@ -20,7 +20,6 @@ if __name__ == '__main__':
                      short_term_config['n_bins_l'][2])
 
     project_data_dir = '%s/data/%s' % (long_term_config['project_dir'], this_program_dir)
-    # TODO
     # 如果没有已经训练完成就删除
     if os.path.isdir(project_data_dir):
         command = 'rm -rf %s' % project_data_dir
