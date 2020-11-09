@@ -1,4 +1,3 @@
-import _init_paths
 from procedure import get_base_query_gnd, get_init_models, train_eval
 import json
 import torch
@@ -7,21 +6,31 @@ import os
 
 if __name__ == '__main__':
 
-    with open('config.json', 'r') as f:
-        all_config = json.load(f)
+    # 设置两个配置文件, 方便批量执行
+    with open('config/long_term_config.json', 'r') as f:
+        long_term_config = json.load(f)
 
-    source_data_dir = all_config['source_data_dir']
-    dest_dir = all_config['dest_dir']
-    dataset_type = all_config['dataset_type']
-    classifiers = all_config['classifiers']
-    recall_threshold = all_config['recall_threshold']
-    n_bins_l = range(all_config['n_bins_l'][0], all_config['n_bins_l'][1], all_config['n_bins_l'][2])
-    k = all_config['k']
-    source_data_fname = all_config['source_data_fname']
+    with open('config/test_config.json', 'r') as f:
+        short_term_config = json.load(f)
 
+    this_program_dir = short_term_config['this_program_dir']
+
+    classifiers = short_term_config['classifiers']
+    n_bins_l = range(short_term_config['n_bins_l'][0], short_term_config['n_bins_l'][1],
+                     short_term_config['n_bins_l'][2])
+
+    project_data_dir = '%s/data/%s' % (long_term_config['project_dir'], this_program_dir)
+    # TODO
     # 如果没有已经训练完成就删除
-    if os.path.isdir(dest_dir):
-        command = 'rm -rf %s' % dest_dir
+    if os.path.isdir(project_data_dir):
+        command = 'rm -rf %s' % project_data_dir
+        print(command)
+        os.system(command)
+
+    # 如果之前已经出现结果就删除
+    project_result_dir = '%s/result/%s' % (long_term_config['project_dir'], this_program_dir)
+    if os.path.isdir(project_result_dir):
+        command = 'rm -rf %s' % project_result_dir
         print(command)
         os.system(command)
 
@@ -30,32 +39,44 @@ if __name__ == '__main__':
     创建文件夹, 提取base, query, 转换成图, 调用kahip
     '''
     config_base_query_gnd = {
-        "dataset_type": dataset_type,
-        'source_data_fname': source_data_fname,
+        "dataset_type": long_term_config['dataset_type'],
+        'source_data_fname': long_term_config['source_data_fname'],
 
-        'source_data_dir': source_data_dir,
-        'dest_dir': dest_dir,
+        'source_data_dir': long_term_config['source_data_dir'],
+        'project_data_dir': project_data_dir,
 
-        'k_gnd': k
+        'k_gnd': long_term_config['k']
     }
     base, query, gnd = get_base_query_gnd.get_base_query_gnd(config_base_query_gnd)
 
+    '''
+    每一个模型建立自己的文件夹并初始化模型对象
+    '''
     config_init_models = {
-        'dest_dir': dest_dir,
-        'classifiers': classifiers
+        'project_data_dir': project_data_dir,
+        'kahip_dir': long_term_config['kahip_dir'],
+        'classifiers': classifiers,
+        # 用于分类器的k表示
+        'k': long_term_config['k']
     }
-    # 每一个模型建立自己的文件夹并初始化模型对象
     models = get_init_models.classifier_factory(config_init_models, base)
 
-    # 训练完成时, 新建目录并在对应的目录下存放训练参数
+    '''
+    训练
+    完成时新建目录并在对应的目录下存放训练参数
+    '''
     train_eval.train(models, base)
 
+    '''
+    评估
+    在result/创建文件夹,放置结果
+    '''
     config_eval_models = {
-        'dest_dir': dest_dir,
+        'project_result_dir': project_result_dir,
         # 采样多少个桶
         'n_bins_l': n_bins_l,
-        'k': k,
-        'recall_threshold': recall_threshold
+        'k': long_term_config['k'],
+        'recall_threshold': long_term_config['recall_threshold'],
+        'eval_separate': short_term_config['eval_separate']
     }
-    # 进行评估时需要在主文件下记录多少个文件夹
     train_eval.evaluate(models, config_eval_models, base, query, gnd)

@@ -1,7 +1,8 @@
-import get_base_query_gnd
+from util import vecs_util
 import json
 import numpy as np
 import torch
+import os
 
 
 def idx_local2global(local, local2global):
@@ -24,34 +25,51 @@ def count_recall(experiment, gnd, k):
     return recall
 
 
-def eval_single_query(models, baseset, query, gnd, n_bins, k):
+def eval_models(models, baseset, queryset, gndset, n_bins, k):
     # label的顺序是partition后的顺序, 存放的值是baseset对应的索引
-    label = np.array([]).astype(np.int)
-    query = query[np.newaxis, :]
+    label = []
+    for i in range(len(queryset)):
+        label.append(set())
     for model in models:
         # 这里取交集还是并集不太清楚
-        # np的一维数组, 返回的是桶中每一个点的索引(相对于base)
-        tmp_index = model.eval(query, n_bins)
-        # 将二维数组中外层维度为1的数组去掉
-        tmp_index = tmp_index.squeeze()
-        # print(tmp_index.shape)
-        label = np.union1d(label, tmp_index)
+        # tmp_index, 列表里面包着set()
+        pred_index = model.eval(queryset, n_bins)
+        for i in range(len(pred_index)):
+            label[i] = label[i] | pred_index[i]
+    n_candidates_l = [len(label_i) for label_i in label]
+    recall_l = list()
+    label_l = []
+    for i in range(len(label)):
+        tmp_label = list(label[i])
+        tmp_label.sort()
+        label_l.append(tmp_label)
+    del label
+    for i in range(len(label_l)):
+        # 根据label存放的baseset索引找到切分数据集后的东西
+        partition_items = np.array([baseset[candi_idx] for candi_idx in label_l[i]])
 
-    # print(label)
-    n_candidates = label.shape[0]
-    # print("n_candidates", n_candidates)
-    # 根据label存放的baseset索引找到切分数据集后的东西
-    partition_items = np.array([baseset[candi_idx] for candi_idx in label])
-    # print(partition_items)
-    # print("partition_items shape", partition_items.shape)  # x * 128
-    # 在partition后的空间内暴力搜索
-    result_local = get_base_query_gnd.get_gnd_numpy(partition_items, query, k)[0]
-    # 将result的idx转换成全局的idx
-    result_global_idx = idx_local2global(result_local, label)
+        # 在partition后的空间内暴力搜索
+        query = queryset[i]
+        query = query[np.newaxis, :]
+        result_local = vecs_util.get_gnd_numpy(partition_items, query, k)[0]
+        # 将result的idx转换成全局的idx
+        result_global_idx = idx_local2global(result_local, label_l[i])
+        # 计算recall
+        recall = count_recall(result_global_idx, gndset[i], k)
+        recall_l.append(recall)
 
-    # 计算recall
-    recall = count_recall(result_global_idx, gnd, k)
-    return n_candidates, recall
+    recall_avg = np.mean(recall_l)
+    n_candidates_avg = np.mean(n_candidates_l)
+
+    # compute 95th percentile probe count
+    n05 = int(len(recall_l) * 0.05)
+    val, idx = torch.topk(torch.FloatTensor(n_candidates_l), k=n05, dim=0, largest=True)
+    n_candidates_95 = val[-1].item()
+    print('n_bins: {}, recall: {}, n_candidates_avg: {}, n_candidates_95: {}'.format(n_bins, recall_avg,
+                                                                                     n_candidates_avg,
+                                                                                     n_candidates_95))
+
+    return recall_avg, n_candidates_avg, n_candidates_95
 
 
 def train(models, base):
@@ -61,27 +79,11 @@ def train(models, base):
         print(model)
 
 
-def evaluate(models, config, baseset, queryset, gnd):
+def evaluate_separate(models, config, baseset, queryset, gnd, result_fname):
     n_bins_l = config['n_bins_l']
     write_data_buffer = []
     for n_bins in n_bins_l:
-        n_candidates_l = []
-        recall_l = []
-        for i in range(len(queryset)):
-            n_candidates, recall = eval_single_query(models, baseset, queryset[i], gnd[i], n_bins, config['k'])
-            n_candidates_l.append(n_candidates)
-            recall_l.append(recall)
-
-        recall_avg = np.mean(recall_l)
-        n_candidates_avg = np.mean(n_candidates_l)
-
-        # compute 95th percentile probe count
-        n05 = int(len(recall_l) * 0.05)
-        val, idx = torch.topk(torch.FloatTensor(n_candidates_l), k=n05, dim=0, largest=True)
-        n_candidates_95 = val[-1].item()
-        print('n_bins: {}, recall: {}, n_candidates_avg: {}, n_candidates_95: {}'.format(n_bins, recall_avg,
-                                                                                         n_candidates_avg,
-                                                                                         n_candidates_95))
+        recall_avg, n_candidates_avg, n_candidates_95 = eval_models(models, baseset, queryset, gnd, n_bins, config['k'])
         json_res = {
             'n_bins': n_bins,
             'recall': recall_avg,
@@ -91,6 +93,13 @@ def evaluate(models, config, baseset, queryset, gnd):
         write_data_buffer.append(json_res)
         if recall_avg > config['recall_threshold']:
             break
-
-    with open('%s/%s' % (config['dest_dir'], 'result.json'), 'w') as f:
+    print('save result fname: %s' % result_fname)
+    with open('%s/%s' % (config['project_result_dir'], result_fname), 'w') as f:
         json.dump(write_data_buffer, f)
+
+def evaluate(models, config, baseset, queryset, gnd):
+    os.system('mkdir %s' % (config['project_result_dir']))
+    evaluate_separate(models, config, baseset, queryset, gnd, 'result.json')
+    if config['eval_separate'] is True:
+        for model in models:
+            evaluate_separate([model], config, baseset, queryset, gnd, model.model_save_fname)

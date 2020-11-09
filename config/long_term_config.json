@@ -1,0 +1,14 @@
+{
+  "source_data_dir": "/home/bz/SIFT/siftsmall",
+  "project_dir": "/home/bz/R-Classifier-Learn-Hash",
+  "kahip_dir": "/home/bz/KaHIP",
+  "dataset_type": "fvecs",
+
+  "recall_threshold": 0.95,
+  "k": 10,
+  
+  "source_data_fname": {
+    "base": "siftsmall_base.fvecs",
+    "query": "siftsmall_query.fvecs"
+  }
+}

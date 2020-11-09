@@ -1,10 +1,12 @@
 import pickle
 
 
-class Base_Model:
+class BaseModel:
     def __init__(self, config):
         # 保存该模型参数的地址
-        self.save_dir = config['dest_dir']
+        self.save_dir = config['project_data_dir']
+        # 用于存放单个模型运行结果的文件名
+        self.model_save_fname = config['model_save_fname']
         self.has_train = False
 
     def train(self, base):

@@ -35,10 +35,9 @@ def read_knn_graph(graph_dir):
 
 def read_partition(partition_dir):
     with open(partition_dir, 'r') as file:
-        lines = file.readlines()
+        lines = file.read().splitlines()
 
-    partition = [int(x.strip()) for x in lines if x != '\n']
-    partition = np.array(partition)
+    partition = [int(line) for line in lines]
     return partition
 
 

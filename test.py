@@ -1,8 +1,8 @@
-import _init_paths
 import numpy as np
-from model import kmeans
+import torch
 
-x = np.arange(10) + 1
-print(np.power(2, x))
+x = [3, 1, 2]
+x = set(x)
+x = list(x)
+print(x)
 
-print("test")

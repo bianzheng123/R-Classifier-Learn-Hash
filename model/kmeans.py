@@ -1,9 +1,9 @@
-from base_model import Base_Model
+from model import base_model
 import numpy as np
 import sklearn.cluster as cls
 
 
-class KMeans(Base_Model):
+class KMeans(base_model.BaseModel):
 
     def __init__(self, config):
         super(KMeans, self).__init__(config)
@@ -37,8 +37,7 @@ class KMeans(Base_Model):
             base_idx = np.array([]).astype(np.int)
             for cluster_i in single_query_cluster_idx:
                 base_idx = np.append(base_idx, self.label[cluster_i])
-            res.append(base_idx)
-        res = np.array(res)
+            res.append(set(base_idx))
         # print(res.shape) # 对于单个query, shape为1 * candidates数量
         return res
 
