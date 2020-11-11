@@ -1,1 +1,0 @@
-[{"n_bins": 1, "recall": 0.696, "n_candidates_avg": 652.5, "n_candidates_95": 1004.0}, {"n_bins": 2, "recall": 0.902, "n_candidates_avg": 1316.98, "n_candidates_95": 1879.0}, {"n_bins": 3, "recall": 0.976, "n_candidates_avg": 2033.51, "n_candidates_95": 2505.0}]
