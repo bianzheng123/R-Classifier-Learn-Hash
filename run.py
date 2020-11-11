@@ -76,6 +76,10 @@ if __name__ == '__main__':
         'n_bins_l': n_bins_l,
         'k': long_term_config['k'],
         'recall_threshold': long_term_config['recall_threshold'],
-        'eval_separate': short_term_config['eval_separate']
+        'eval_separate': short_term_config['eval_separate'],
+        'config': {
+            'long_term_config': long_term_config,
+            'short_term_config': short_term_config
+        }
     }
-    train_eval.evaluate(models, config_eval_models, base, query, gnd)
+    train_eval.evaluate(models, config_eval_models, (base, query, gnd))

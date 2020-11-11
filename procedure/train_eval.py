@@ -25,17 +25,56 @@ def count_recall(experiment, gnd, k):
     return recall
 
 
-def eval_models(models, baseset, queryset, gndset, n_bins, k):
+def union_models_label(models, queryset, n_bins):
     # label的顺序是partition后的顺序, 存放的值是baseset对应的索引
     label = []
     for i in range(len(queryset)):
         label.append(set())
     for model in models:
-        # 这里取交集还是并集不太清楚
-        # tmp_index, 列表里面包着set()
+        # label, 列表里面包着set()
+        # 列表长度queryset的长度, set存放的是压缩后各个点的索引
         pred_index = model.eval(queryset, n_bins)
         for i in range(len(pred_index)):
             label[i] = label[i] | pred_index[i]
+    return label
+
+
+def intersect_models_label(models, queryset, n_bins):
+    # label的顺序是partition后的顺序, 存放的值是baseset对应的索引
+    label = None
+    for i, model in enumerate(models, 0):
+        # label, 列表里面包着set()
+        # 列表长度queryset的长度, set存放的是压缩后各个点的索引
+        pred_index = model.eval(queryset, n_bins)
+
+        if i == 0:
+            label = pred_index
+        else:
+            for j in range(len(pred_index)):
+                label[j] = label[j] & pred_index[j]
+    return label
+
+
+def separate_models_label(models, queryset, n_bins):
+    # label, 列表里面包着set()
+    # 列表长度queryset的长度, set存放的是压缩后各个点的索引
+    label = models[0].eval(queryset, n_bins)
+    return label
+
+
+'''
+models指的是每一个模型对象
+baseset就是数据集
+queryset就是测试集
+gndset, groundtruth
+n_bins, 需要访问的桶数量
+k, 就是kNN中k的大小
+eval_func, 确定模型之间的关系, 是交集并集还是单个评估
+'''
+
+
+def eval_models(models, dataset, n_bins, k, label):
+    baseset, queryset, gndset = dataset
     n_candidates_l = [len(label_i) for label_i in label]
     recall_l = list()
     label_l = []
@@ -80,11 +119,19 @@ def train(models, base):
         print(model)
 
 
-def evaluate_separate(models, config, baseset, queryset, gnd, result_fname):
+def save_json(config, result_fname, json_file):
+    print('save fname: %s' % result_fname)
+    with open('%s/%s' % (config['project_result_dir'], result_fname), 'w') as f:
+        json.dump(json_file, f)
+
+
+def eval_diff_relationship(models, config, dataset, result_fname, eval_models_func):
     n_bins_l = config['n_bins_l']
+    baseset, queryset, gndset = dataset
     write_data_buffer = []
     for n_bins in n_bins_l:
-        recall_avg, n_candidates_avg, n_candidates_95 = eval_models(models, baseset, queryset, gnd, n_bins, config['k'])
+        label = eval_models_func(models, queryset, n_bins)
+        recall_avg, n_candidates_avg, n_candidates_95 = eval_models(models, dataset, n_bins, config['k'], label)
         json_res = {
             'n_bins': n_bins,
             'recall': recall_avg,
@@ -94,13 +141,14 @@ def evaluate_separate(models, config, baseset, queryset, gnd, result_fname):
         write_data_buffer.append(json_res)
         if recall_avg > config['recall_threshold']:
             break
-    print('save result fname: %s' % result_fname)
-    with open('%s/%s' % (config['project_result_dir'], result_fname), 'w') as f:
-        json.dump(write_data_buffer, f)
+    save_json(config, result_fname, write_data_buffer)
 
-def evaluate(models, config, baseset, queryset, gnd):
+
+def evaluate(models, config, dataset):
     os.system('mkdir %s' % (config['project_result_dir']))
-    evaluate_separate(models, config, baseset, queryset, gnd, 'result.json')
+    save_json(config, 'config.json', config['config'])
+    eval_diff_relationship(models, config, dataset, 'union_result.json', union_models_label)
+    eval_diff_relationship(models, config, dataset, 'intersect_result.json', intersect_models_label)
     if config['eval_separate'] is True:
         for model in models:
-            evaluate_separate([model], config, baseset, queryset, gnd, model.model_save_fname)
+            eval_diff_relationship([model], config, dataset, model.model_save_fname, separate_models_label)

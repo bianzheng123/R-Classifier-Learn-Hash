@@ -1,17 +1,13 @@
 import numpy as np
 import torch
 
-class A:
-    def __init__(self):
-        pass
-    def func(self, a):
-        print('a')
 
-class B(A):
-    def __init__(self):
-        pass
-    def func1(self):
-        self.func('fsd')
+def A(a, b):
+    print(a, b)
 
-tmp = B()
-tmp.func1()
+
+def B(func):
+    func(1, 2)
+
+
+B(A)
