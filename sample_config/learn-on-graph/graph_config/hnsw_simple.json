@@ -1,0 +1,10 @@
+{
+  "graph_config": {
+    "type": "hnsw",
+    "select_neighbors_config": {
+      "type": "simple"
+    },
+    "k_graph": 10,
+    "prune": true
+  }
+}

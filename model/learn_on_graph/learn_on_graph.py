@@ -24,7 +24,6 @@ class LearnOnGraph(base_model.BaseModel):
     def train(self, base):
         print('start training {}'.format(self.save_dir.split('/')[-1]))
         super(LearnOnGraph, self).train(base)
-        # TODO
         # 搞出一个knn图
         self.graph_ins.create_graph(base)
         self.graph_ins.save_graph()

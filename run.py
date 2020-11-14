@@ -3,15 +3,26 @@ import json
 import torch
 import numpy as np
 import os
+import copy
+
+
+def delete_dir_if_exist(dir):
+    if os.path.isdir(dir):
+        command = 'rm -rf %s' % dir
+        print(command)
+        os.system(command)
+
 
 if __name__ == '__main__':
-
     # 设置两个配置文件, 方便批量执行
     with open('config/long_term_config.json', 'r') as f:
         long_term_config = json.load(f)
 
     with open('config/short_term_config.json', 'r') as f:
         short_term_config = json.load(f)
+
+    with open('config/short_term_config.json', 'r') as f:
+        short_term_config_before_run = json.load(f)
 
     this_program_dir = short_term_config['this_program_dir']
 
@@ -21,17 +32,11 @@ if __name__ == '__main__':
 
     project_data_dir = '%s/data/%s' % (long_term_config['project_dir'], this_program_dir)
     # 如果没有已经训练完成就删除
-    if os.path.isdir(project_data_dir):
-        command = 'rm -rf %s' % project_data_dir
-        print(command)
-        os.system(command)
+    delete_dir_if_exist(project_data_dir)
 
-    # 如果之前已经出现结果就删除
     project_result_dir = '%s/result/%s' % (long_term_config['project_dir'], this_program_dir)
-    if os.path.isdir(project_result_dir):
-        command = 'rm -rf %s' % project_result_dir
-        print(command)
-        os.system(command)
+    # 如果之前已经出现结果就删除
+    delete_dir_if_exist(project_result_dir)
 
     '''
     数据准备
@@ -77,9 +82,8 @@ if __name__ == '__main__':
         'k': long_term_config['k'],
         'recall_threshold': long_term_config['recall_threshold'],
         'eval_separate': short_term_config['eval_separate'],
-        'config': {
-            'long_term_config': long_term_config,
-            'short_term_config': short_term_config
-        }
+        'long_term_config': long_term_config,
+        'short_term_config': short_term_config,
+        'short_term_config_before_run': short_term_config_before_run
     }
     train_eval.evaluate(models, config_eval_models, (base, query, gnd))

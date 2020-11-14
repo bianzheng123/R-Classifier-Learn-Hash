@@ -27,14 +27,18 @@ class KNNGraph(base_graph.BaseGraph):
         index = faiss.IndexFlatL2(dim)
         index.add(base)
         distance, index_arr = index.search(base, self.k_graph + 1)  # 第一个索引一定是自己, 所以+1
-        index_arr = index_arr[:, -self.k_graph:] + 1  # kahip要求序号从1开始, 就集体加1
-        result_graph = index_arr.copy().tolist()
+        index_arr = index_arr[:, :] + 1  # kahip要求序号从1开始, 就集体加1
+        result_graph = index_arr.tolist()
         print("得到最近的k个结果")
+        for i in range(len(result_graph)):
+            result_graph[i] = set(result_graph[i])
 
         for i in range(len(result_graph)):
+            if (i + 1) in result_graph[i]:
+                result_graph[i].remove((i + 1))
             for vertices_index in result_graph[i]:
                 if (i + 1) not in result_graph[vertices_index - 1]:
-                    result_graph[vertices_index - 1].append(i + 1)
+                    result_graph[vertices_index - 1].add(i + 1)
         print("将rank转换成图")
 
         edges = 0
@@ -43,16 +47,3 @@ class KNNGraph(base_graph.BaseGraph):
         edges = edges / 2
 
         self.graph_info = (vertices, edges, result_graph)
-
-    # 将图保存为graph.graph
-    def save_graph(self):
-        vertices, edges, result_graph = self.graph_info
-        with open(self.save_dir, 'w') as f:
-            f.write("%d %d\n" % (vertices, edges))
-            for nearest_index in result_graph:
-                row_index = ""
-                for item in nearest_index:
-                    row_index += str(item) + " "
-                # print(row_index)
-                f.write(row_index + '\n')
-        print("extract vector hahip complete")

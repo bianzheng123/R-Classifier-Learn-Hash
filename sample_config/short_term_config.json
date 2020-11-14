@@ -10,10 +10,7 @@
     "learn-on-graph": [
       {
         "graph_config": {
-          "type": "hnsw",
-          "select_neighbors_config": {
-            "type": "simple"
-          },
+          "type": "knn",
           "k_graph": 10
         },
         "classifier_config": {

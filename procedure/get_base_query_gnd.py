@@ -1,4 +1,3 @@
-# from procedure import _init_paths
 import numpy as np
 import faiss
 from util import vecs_io, vecs_util

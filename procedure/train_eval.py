@@ -119,9 +119,9 @@ def train(models, base):
         print(model)
 
 
-def save_json(config, result_fname, json_file):
+def save_json(save_dir, result_fname, json_file):
     print('save fname: %s' % result_fname)
-    with open('%s/%s' % (config['project_result_dir'], result_fname), 'w') as f:
+    with open('%s/%s' % (save_dir, result_fname), 'w') as f:
         json.dump(json_file, f)
 
 
@@ -141,12 +141,16 @@ def eval_diff_relationship(models, config, dataset, result_fname, eval_models_fu
         write_data_buffer.append(json_res)
         if recall_avg > config['recall_threshold']:
             break
-    save_json(config, result_fname, write_data_buffer)
+    save_json(config['project_result_dir'], result_fname, write_data_buffer)
 
 
 def evaluate(models, config, dataset):
     os.system('mkdir %s' % (config['project_result_dir']))
-    save_json(config, 'config.json', config['config'])
+    config_dir = '%s/config' % config['project_result_dir']
+    os.system('mkdir %s' % config_dir)
+    save_json(config_dir, 'long_term_config.json', config['long_term_config'])
+    save_json(config_dir, 'short_term_config.json', config['short_term_config'])
+    save_json(config_dir, 'short_term_config_before_run.json', config['short_term_config_before_run'])
     eval_diff_relationship(models, config, dataset, 'union_result.json', union_models_label)
     eval_diff_relationship(models, config, dataset, 'intersect_result.json', intersect_models_label)
     if config['eval_separate'] is True:
