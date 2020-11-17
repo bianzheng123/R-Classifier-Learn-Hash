@@ -2,10 +2,11 @@
   "graph_config": {
     "type": "hnsw",
     "k_graph": 10,
-    //efConstruction, 在search_layer时返回的candidate_list最大长度
     "efConstruction": 100,
     "select_neighbors_config": {
-      "type": "simple"
+      "type": "heuristic",
+      "extend_candidates": true,
+      "keep_pruned_connections": true
     }
   }
 }

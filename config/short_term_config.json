@@ -1,5 +1,5 @@
 {
-  "this_program_dir": "graph_kmeans",
+  "this_program_dir": "graph_kmeans_kmm",
   "eval_separate": true,
   "classifiers": {
     "kmeans": [
@@ -10,10 +10,7 @@
     "learn-on-graph": [
       {
         "graph_config": {
-          "type": "hnsw",
-          "select_neighbors_config": {
-            "type": "simple"
-          },
+          "type": "knn",
           "k_graph": 10
         },
         "classifier_config": {
@@ -30,7 +27,7 @@
               512,
               512
             ],
-            "n_epochs": 20,
+            "n_epochs": 10,
             "lr": 0.008,
             "p_dropout": 0.1,
             "acc_threshold": 0.95
