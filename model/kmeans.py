@@ -7,6 +7,7 @@ class KMeans(base_model.BaseModel):
 
     def __init__(self, config):
         super(KMeans, self).__init__(config)
+        self.m = config['m']
         # 该模型需要聚类的数量
         self.model = cls.KMeans(n_clusters=self.n_cluster, init='k-means++', max_iter=30)
         # self.base, self.save_dir, self.label

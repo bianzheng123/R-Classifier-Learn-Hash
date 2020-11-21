@@ -1,5 +1,5 @@
 {
-  "source_data_dir": "/home/bz/SIFT/siftsmall",
+  "source_data_dir": "/home/bz/SIFT/sift",
   "project_dir": "/home/bz/R-Classifier-Learn-Hash",
   "kahip_dir": "/home/bz/KaHIP",
   "dataset_type": "fvecs",
@@ -8,7 +8,7 @@
   "k": 10,
   
   "source_data_fname": {
-    "base": "siftsmall_base.fvecs",
-    "query": "siftsmall_query.fvecs"
+    "base": "sift_base.fvecs",
+    "query": "sift_query.fvecs"
   }
 }

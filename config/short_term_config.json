@@ -1,45 +1,14 @@
 {
-  "this_program_dir": "graph_kmeans_kmm",
+  "this_program_dir": "siftsmall_kmeans_knn",
   "eval_separate": true,
   "classifiers": {
     "kmeans": [
       {
-        "n_cluster": 16
+        "n_cluster": 16,
+        "m": 1
       }
     ],
-    "learn-on-graph": [
-      {
-        "graph_config": {
-          "type": "knn",
-          "k_graph": 10
-        },
-        "classifier_config": {
-          "type": "neural_network",
-          "data_prepare_config": {
-            "nn_mult": 5,
-            "batch_size": 64,
-            "shuffle": true,
-            "train_split": 0.99
-          },
-          "train_config": {
-            "n_input": 128,
-            "n_hidden": [
-              512,
-              512
-            ],
-            "n_epochs": 10,
-            "lr": 0.008,
-            "p_dropout": 0.1,
-            "acc_threshold": 0.95
-          },
-          "use_neighbor": true
-        },
-        "kahip": {
-          "preconfiguration": "strong"
-        },
-        "n_cluster": 16
-      }
-    ]
+    "learn-on-graph": []
   },
   "n_bins_l": [
     1,

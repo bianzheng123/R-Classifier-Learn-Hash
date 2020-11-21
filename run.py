@@ -14,14 +14,17 @@ def delete_dir_if_exist(dir):
 
 
 if __name__ == '__main__':
+    long_config_dir = 'config/long_term_config.json'
+    short_config_dir = 'config/kmeans_and_graph/knn.json'
+
     # 设置两个配置文件, 方便批量执行
-    with open('config/long_term_config.json', 'r') as f:
+    with open(long_config_dir, 'r') as f:
         long_term_config = json.load(f)
 
-    with open('config/short_term_config.json', 'r') as f:
+    with open(short_config_dir, 'r') as f:
         short_term_config = json.load(f)
 
-    with open('config/short_term_config.json', 'r') as f:
+    with open(short_config_dir, 'r') as f:
         short_term_config_before_run = json.load(f)
 
     this_program_dir = short_term_config['this_program_dir']

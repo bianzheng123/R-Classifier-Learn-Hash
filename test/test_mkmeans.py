@@ -1,6 +1,5 @@
 import _init_paths
-from model.learn_on_graph.graph import knn_graph
-from model.learn_on_graph.graph.hnsw_graph import hnsw_graph
+from model import kmeans
 from util import vecs_io
 import numpy as np
 from time import time
@@ -9,29 +8,11 @@ import os
 
 def preprocess():
     start_time = time()
-    base_dir = '/home/bz/SIFT/sift/sift_base.fvecs'
-    base = vecs_io.fvecs_read_mmap(base_dir)[0]
-    # base = np.array([[1, 2], [1, 5], [2, 2], [3, 5], [4, 5], [5, 10], [10, 15], [2, 2], [1, 2], [1, 5]])
+    base_dir = '/home/bz/SIFT/siftsmall/siftsmall_base.fvecs'
+    # base = vecs_io.fvecs_read_mmap(base_dir)[0]
+    base = np.array([[1, 2], [1, 5], [2, 2], [3, 5], [4, 5], [5, 10], [10, 15], [2, 2], [1, 2], [1, 5]])
     # base = np.array([[1, 2], [1, 2], [2, 2], [2, 5]])
     base = base.astype(np.float32)
-    # config = {
-    #     "select_neighbors_config": {
-    #         "type": "simple"
-    #     },
-    #     'save_dir': '/home/bz/R-Classifier-Learn-Hash/test/graph.graph',
-    #     "efConstruction": 100,
-    #     "k_graph": 2
-    # }
-    # config = {
-    #     "select_neighbors_config": {
-    #         "type": "heuristic",
-    #         "extend_candidates": True,
-    #         "keep_pruned_connections": True
-    #     },
-    #     'save_dir': '/home/bz/R-Classifier-Learn-Hash/test/graph.graph',
-    #     "efConstruction": 100,
-    #     "k_graph": 2
-    # }
     config = {
         'save_dir': '/home/bz/R-Classifier-Learn-Hash/test/graph.graph',
         "k_graph": 2
@@ -50,7 +31,7 @@ graph_ins = preprocess()
 vertices, edges, graph = graph_ins
 
 
-class TestGraph:
+class TestKmeans:
 
     def test_vertices(self):
         assert vertices == len(graph)
